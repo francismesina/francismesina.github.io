@@ -103,13 +103,12 @@ body, input, select, textarea {
 a {
   -webkit-transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
   transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-  border-bottom: dotted 1px;
-  color: #49bf9d;
+  color: #2c9adc;
   text-decoration: none;
+  font-weight: 600;
 }
 a:hover {
-  border-bottom-color: transparent;
-  color: #49bf9d !important;
+  color: #2c9adc !important;
   text-decoration: none;
 }
 
@@ -1578,7 +1577,7 @@ input[type=password]:focus,
 input[type=email]:focus,
 select:focus,
 textarea:focus {
-  border-color: #49bf9d;
+  border-color: #2c9adc;
 }
 
 select {
@@ -1675,7 +1674,7 @@ input[type=radio]:checked + label:before {
 }
 input[type=checkbox]:focus + label:before,
 input[type=radio]:focus + label:before {
-  border-color: #49bf9d;
+  border-color: #2c9adc;
 }
 
 input[type=checkbox] + label:before {
@@ -1777,6 +1776,7 @@ input[type=radio] + label:before {
 }
 .image.thumb {
   text-align: center;
+  border: 0.5px solid rgba(73, 191, 158, 0.4705882353);
 }
 .image.thumb:after {
   -webkit-transition: opacity 0.2s ease-in-out;
@@ -2116,16 +2116,16 @@ input[type=submit]:hover,
 input[type=reset]:hover,
 input[type=button]:hover,
 .button:hover {
-  border-color: #49bf9d;
-  color: #49bf9d !important;
+  border-color: #2c9adc;
+  color: #2c9adc !important;
 }
 input[type=submit]:active,
 input[type=reset]:active,
 input[type=button]:active,
 .button:active {
-  background-color: rgba(73, 191, 157, 0.1);
-  border-color: #49bf9d;
-  color: #49bf9d !important;
+  background-color: rgba(44, 154, 220, 0.1);
+  border-color: #2c9adc;
+  color: #2c9adc !important;
 }
 input[type=submit].icon,
 input[type=reset].icon,
@@ -2162,23 +2162,23 @@ input[type=submit].primary,
 input[type=reset].primary,
 input[type=button].primary,
 .button.primary {
-  background-color: #49bf9d;
-  border-color: #49bf9d;
+  background-color: #2c9adc;
+  border-color: #2c9adc;
   color: #ffffff !important;
 }
 input[type=submit].primary:hover,
 input[type=reset].primary:hover,
 input[type=button].primary:hover,
 .button.primary:hover {
-  background-color: #5cc6a7;
-  border-color: #5cc6a7;
+  background-color: #42a4e0;
+  border-color: #42a4e0;
 }
 input[type=submit].primary:active,
 input[type=reset].primary:active,
 input[type=button].primary:active,
 .button.primary:active {
-  background-color: #3eb08f;
-  border-color: #3eb08f;
+  background-color: #228dcd;
+  border-color: #228dcd;
 }
 input[type=submit].disabled, input[type=submit]:disabled,
 input[type=reset].disabled,
@@ -2203,11 +2203,12 @@ input[type=button]:disabled,
 .work-item h3 {
   font-size: 1em;
   margin: 0 0 0.5em 0;
+  font-weight: 500;
 }
 .work-item p {
   font-size: 0.8em;
   line-height: 1.5em;
-  margin: 0;
+  margin: 0 0 1rem;
 }
 
 /* Header */
@@ -2241,7 +2242,7 @@ input[type=button]:disabled,
   color: rgba(255, 255, 255, 0.5);
   height: 100%;
   left: 0;
-  padding: 8em 4em;
+  padding: 4em 4em;
   position: fixed;
   text-align: right;
   top: 0;
@@ -2704,4 +2705,10 @@ body.is-touch .poptrox-popup .closer {
     margin-left: 0;
     padding-left: 0;
   }
+}
+.francis-m-skills {
+  border-bottom: 1px solid #2c9adc;
+}
+.francis-m-skills__item {
+  margin-bottom: 1rem;
 }
