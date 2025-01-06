@@ -1061,6 +1061,7 @@ $size-header-pad: 4em;
 			font-size: 1em;
 			margin: 0 0 (_size(element-margin) * 0.25) 0;
 			font-weight: 500;
+			text-wrap: balance;
 		}
 
 		p {
@@ -1166,7 +1167,7 @@ $size-header-pad: 4em;
 
 	#main {
 		margin-left: $size-header-width;
-		max-width: 50em + $size-header-pad;
+		// max-width: 50em + $size-header-pad;
 		padding: ($size-header-pad * 2) $size-header-pad $size-header-pad $size-header-pad;
 		width: calc(100% - #{$size-header-width});
 
