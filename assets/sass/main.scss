@@ -615,7 +615,7 @@ $size-header-pad: 4em;
 
 		&.thumb {
 			text-align: center;
-			border: .5px solid #49bf9e78 ;
+			border: .5px solid #2367fa66;
 
 			&:after {
 				@include vendor('transition', 'opacity #{_duration(transition)} ease-in-out');
