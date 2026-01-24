@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk & Reward Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 1.3rem;
+            text-align: center;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccd0d4;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .result-box {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+        }
+
+        .risk-box {
+            background: #e11d48;
+        }
+
+        /* Red */
+        .profit-box {
+            background: #10b981;
+        }
+
+        /* Green */
+        .lot-box {
+            background: #1a1a1b;
+            grid-column: span 2;
+        }
+
+        .val {
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .lbl {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            opacity: 0.9;
+            font-weight: bold;
+        }
+
+        .rr-badge {
+            background: #facc15;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Trade Planner</h2>
+
+        <div class="group">
+            <label>Account Balance ($)</label>
+            <input type="number" id="balance" value="300" oninput="calculate()">
+        </div>
+
+        <div class="group">
+            <label>Risk Method</label>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="riskType" value="usd" checked onclick="calculate()"> Fixed $</label>
+                <label class="radio-option"><input type="radio" name="riskType" value="percent" onclick="calculate()"> % of Bal</label>
+            </div>
+            <input type="number" id="riskValue" value="20" oninput="calculate()">
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <div class="group" style="flex: 1;">
+                <label>Stop Loss (Pips)</label>
+                <input type="number" id="stopLoss" value="12.5" step="0.1" oninput="calculate()">
+            </div>
+            <div class="group" style="flex: 1;">
+                <label>Target (Pips)</label>
+                <input type="number" id="targetPips" value="31.0" step="0.1" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="group">
+            <label>Asset Type</label>
+            <select id="pairType" onchange="calculate()">
+                <option value="10">Forex Majors (EURUSD, etc. - $10/pip)</option>
+                <option value="7">JPY Pairs (USDJPY, etc. - ~$7/pip)</option>
+                <option value="10">Gold (XAUUSD - $10/pip)</option>
+            </select>
+        </div>
+
+        <div class="results-container">
+            <div class="result-box lot-box">
+                <span class="lbl">Recommended Lot Size</span>
+                <span class="val" id="lotOutput">0.16</span>
+            </div>
+            <div class="result-box risk-box">
+                <span class="lbl">Risk Amount</span>
+                <span class="val" id="riskOutput">$20.00</span>
+            </div>
+            <div class="result-box profit-box">
+                <span class="lbl">Potential Profit</span>
+                <span class="val" id="profitOutput">$49.60</span>
+            </div>
+        </div>
+        <div style="text-align: center;">
+            <div id="rrRatio" class="rr-badge">R:R Ratio: 1:2.48</div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            const riskValue = parseFloat(document.getElementById('riskValue').value) || 0;
+            const slPips = parseFloat(document.getElementById('stopLoss').value) || 0;
+            const tpPips = parseFloat(document.getElementById('targetPips').value) || 0;
+            const pipValPerStdLot = parseFloat(document.getElementById('pairType').value);
+            const riskType = document.querySelector('input[name="riskType"]:checked').value;
+
+            let riskUSD = riskType === 'percent' ? (balance * (riskValue / 100)) : riskValue;
+
+            if (slPips > 0 && riskUSD > 0) {
+                // 1. Calculate Lot Size
+                const lotSize = (riskUSD / slPips) / pipValPerStdLot;
+
+                // 2. Calculate Profit based on that Lot Size
+                const potentialProfit = lotSize * tpPips * pipValPerStdLot;
+
+                // 3. Risk to Reward Ratio
+                const rr = tpPips / slPips;
+
+                document.getElementById('lotOutput').innerText = lotSize.toFixed(2);
+                document.getElementById('riskOutput').innerText = `$${riskUSD.toFixed(2)}`;
+                document.getElementById('profitOutput').innerText = `$${potentialProfit.toFixed(2)}`;
+                document.getElementById('rrRatio').innerText = `R:R Ratio: 1:${rr.toFixed(2)}`;
+            }
+        }
+        calculate();
+    </script>
+
+</body>
+
+</html>
