@@ -122,68 +122,219 @@
             margin-top: 5px;
             display: inline-block;
         }
+
+        .calc-btn {
+            padding: 16px 0;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            background: #f0f0f0;
+            color: #222;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .calc-btn:hover {
+            background: #e5e7eb;
+        }
+
+        #calc-card:focus {
+            box-shadow: 0 8px 24px rgba(2, 82, 157, .4);
+        }
+
+        .clock-label {
+            display: inline-block;
+            width: 90px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .clock-time {
+            font-family: 'Segoe UI Mono', 'Consolas', monospace;
+            font-size: 1.1rem;
+            margin-left: 12px;
+            color: #1a1a1b;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="card">
-        <h2>Trade Planner</h2>
-
-        <div class="group">
-            <label>Account Balance ($)</label>
-            <input type="number" id="balance" value="300" oninput="calculate()">
+    <div style="display: flex; gap: 32px; justify-content: center; width: 100%; max-width: 950px;">
+        <div class="card" style="flex: 1 1 0; min-width: 320px;">
+            <h2>Lot Size Calculator</h2>
+            <div class="group">
+                <label>Account Balance ($)</label>
+                <input type="number" id="balance" value="300" oninput="calculate()">
+            </div>
+            <div class="group">
+                <label>Risk Method</label>
+                <div class="radio-group">
+                    <label class="radio-option"><input type="radio" name="riskType" value="usd" checked onclick="calculate()"> Fixed $</label>
+                    <label class="radio-option"><input type="radio" name="riskType" value="percent" onclick="calculate()"> % of Bal</label>
+                </div>
+                <input type="number" id="riskValue" value="20" oninput="calculate()">
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="group" style="flex: 1;">
+                    <label>Stop Loss (Pips)</label>
+                    <input type="number" id="stopLoss" value="12.5" step="0.1" oninput="calculate()">
+                </div>
+                <div class="group" style="flex: 1;">
+                    <label>Target (Pips)</label>
+                    <input type="number" id="targetPips" value="31.0" step="0.1" oninput="calculate()">
+                </div>
+            </div>
+            <div class="group">
+                <label>Asset Type</label>
+                <select id="pairType" onchange="calculate()">
+                    <option value="10">Forex Majors (EURUSD, etc. - $10/pip)</option>
+                    <option value="7">JPY Pairs (USDJPY, etc. - ~$7/pip)</option>
+                    <option value="10">Gold (XAUUSD - $10/pip)</option>
+                </select>
+            </div>
+            <div class="results-container">
+                <div class="result-box lot-box">
+                    <span class="lbl">Recommended Lot Size</span>
+                    <span class="val" id="lotOutput">0.16</span>
+                </div>
+                <div class="result-box risk-box">
+                    <span class="lbl">Risk Amount</span>
+                    <span class="val" id="riskOutput">$20.00</span>
+                </div>
+                <div class="result-box profit-box">
+                    <span class="lbl">Potential Profit</span>
+                    <span class="val" id="profitOutput">$49.60</span>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div id="rrRatio" class="rr-badge">R:R Ratio: 1:2.48</div>
+            </div>
+        </div>
+        <div class="card" id="calc-card" tabindex="0" style="flex: 1 1 0; min-width: 320px; max-width: 350px; display: flex; flex-direction: column; align-items: center; outline: none;">
+            <h2>Calculator</h2>
+            <div id="calc-display" style="width: 100%; background: #f8f9fa; border-radius: 8px; padding: 18px 12px; font-size: 1.5rem; text-align: right; margin-bottom: 18px; min-height: 36px; box-sizing: border-box; word-break: break-all;">0</div>
+            <div style="width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                <button class="calc-btn" onclick="calcInput('7')">7</button>
+                <button class="calc-btn" onclick="calcInput('8')">8</button>
+                <button class="calc-btn" onclick="calcInput('9')">9</button>
+                <button class="calc-btn" onclick="calcInput('/')">÷</button>
+                <button class="calc-btn" onclick="calcInput('4')">4</button>
+                <button class="calc-btn" onclick="calcInput('5')">5</button>
+                <button class="calc-btn" onclick="calcInput('6')">6</button>
+                <button class="calc-btn" onclick="calcInput('*')">×</button>
+                <button class="calc-btn" onclick="calcInput('1')">1</button>
+                <button class="calc-btn" onclick="calcInput('2')">2</button>
+                <button class="calc-btn" onclick="calcInput('3')">3</button>
+                <button class="calc-btn" onclick="calcInput('-')">−</button>
+                <button class="calc-btn" onclick="calcInput('0')">0</button>
+                <button class="calc-btn" onclick="calcInput('.')">.</button>
+                <button class="calc-btn" onclick="calcEquals()">=</button>
+                <button class="calc-btn" onclick="calcInput('+')">+</button>
+                <button class="calc-btn" onclick="calcClear()" style="grid-column: span 4; background: #e11d48; color: #fff;">C</button>
+            </div>
+        </div>
+        <div class="card" style="flex: 1 1 0; min-width: 320px; max-width: 350px;">
+            <h2 style="margin-bottom: 16px;">Market Clocks</h2>
+            <div id="market-times" style="display: flex; flex-direction: column; gap: 12px;">
+                <div><span class="clock-label">New York</span><span class="clock-time" id="clock-ny">--:--:--</span></div>
+                <div><span class="clock-label">London</span><span class="clock-time" id="clock-london">--:--:--</span></div>
+                <div><span class="clock-label">Tokyo</span><span class="clock-time" id="clock-tokyo">--:--:--</span></div>
+                <div><span class="clock-label">Sydney</span><span class="clock-time" id="clock-sydney">--:--:--</span></div>
+            </div>
         </div>
 
-        <div class="group">
-            <label>Risk Method</label>
-            <div class="radio-group">
-                <label class="radio-option"><input type="radio" name="riskType" value="usd" checked onclick="calculate()"> Fixed $</label>
-                <label class="radio-option"><input type="radio" name="riskType" value="percent" onclick="calculate()"> % of Bal</label>
-            </div>
-            <input type="number" id="riskValue" value="20" oninput="calculate()">
-        </div>
-
-        <div style="display: flex; gap: 15px;">
-            <div class="group" style="flex: 1;">
-                <label>Stop Loss (Pips)</label>
-                <input type="number" id="stopLoss" value="12.5" step="0.1" oninput="calculate()">
-            </div>
-            <div class="group" style="flex: 1;">
-                <label>Target (Pips)</label>
-                <input type="number" id="targetPips" value="31.0" step="0.1" oninput="calculate()">
-            </div>
-        </div>
-
-        <div class="group">
-            <label>Asset Type</label>
-            <select id="pairType" onchange="calculate()">
-                <option value="10">Forex Majors (EURUSD, etc. - $10/pip)</option>
-                <option value="7">JPY Pairs (USDJPY, etc. - ~$7/pip)</option>
-                <option value="10">Gold (XAUUSD - $10/pip)</option>
-            </select>
-        </div>
-
-        <div class="results-container">
-            <div class="result-box lot-box">
-                <span class="lbl">Recommended Lot Size</span>
-                <span class="val" id="lotOutput">0.16</span>
-            </div>
-            <div class="result-box risk-box">
-                <span class="lbl">Risk Amount</span>
-                <span class="val" id="riskOutput">$20.00</span>
-            </div>
-            <div class="result-box profit-box">
-                <span class="lbl">Potential Profit</span>
-                <span class="val" id="profitOutput">$49.60</span>
-            </div>
-        </div>
-        <div style="text-align: center;">
-            <div id="rrRatio" class="rr-badge">R:R Ratio: 1:2.48</div>
-        </div>
     </div>
 
     <script>
+        // Market clocks logic
+        function updateMarketClocks() {
+            const now = new Date();
+            // UTC offsets for each market (in hours)
+            const markets = [
+                { id: 'clock-ny', offset: -5 },    // New York (EST, adjust for DST if needed)
+                { id: 'clock-london', offset: 0 }, // London (UTC)
+                { id: 'clock-tokyo', offset: 9 },  // Tokyo (JST)
+                { id: 'clock-sydney', offset: 10 } // Sydney (AEST)
+            ];
+            // Get UTC time
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            markets.forEach(market => {
+                // Calculate local time for each market
+                const local = new Date(utc + 3600000 * market.offset);
+                let hours = local.getHours();
+                const minutes = String(local.getMinutes()).padStart(2, '0');
+                const seconds = String(local.getSeconds()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+                document.getElementById(market.id).innerText = timeStr;
+            });
+        }
+        setInterval(updateMarketClocks, 1000);
+        updateMarketClocks();
+        // Keyboard support for calculator
+        const calcCard = document.getElementById('calc-card');
+        calcCard.addEventListener('keydown', function (e) {
+            const key = e.key;
+            if ((key >= '0' && key <= '9') || key === '.') {
+                calcInput(key);
+                e.preventDefault();
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                calcInput(key);
+                e.preventDefault();
+            } else if (key === 'Enter' || key === '=') {
+                calcEquals();
+                e.preventDefault();
+            } else if (key === 'Backspace') {
+                if (calcCurrent.length > 0) {
+                    calcCurrent = calcCurrent.slice(0, -1);
+                    document.getElementById('calc-display').innerText = calcCurrent || '0';
+                }
+                e.preventDefault();
+            } else if (key === 'c' || key === 'C' || key === 'Escape') {
+                calcClear();
+                e.preventDefault();
+            }
+        });
+        // Focus calculator on click for keyboard use
+        calcCard.addEventListener('click', function () {
+            calcCard.focus();
+        });
+        // Simple calculator logic
+        let calcCurrent = '';
+        let calcResultShown = false;
+        function calcInput(val) {
+            if (calcResultShown && /[0-9.]/.test(val)) {
+                calcCurrent = '';
+                calcResultShown = false;
+            }
+            if (calcCurrent === '' && /[+\-*/.]/.test(val) && val !== '-') return;
+            calcCurrent += val;
+            document.getElementById('calc-display').innerText = calcCurrent;
+        }
+        function calcEquals() {
+            try {
+                let result = eval(calcCurrent.replace(/[^0-9+\-*/.]/g, ''));
+                if (typeof result === 'number' && isFinite(result)) {
+                    document.getElementById('calc-display').innerText = result;
+                    calcCurrent = result.toString();
+                    calcResultShown = true;
+                } else {
+                    document.getElementById('calc-display').innerText = 'Error';
+                    calcCurrent = '';
+                }
+            } catch {
+                document.getElementById('calc-display').innerText = 'Error';
+                calcCurrent = '';
+            }
+        }
+        function calcClear() {
+            calcCurrent = '';
+            document.getElementById('calc-display').innerText = '0';
+        }
         function calculate() {
             const balance = parseFloat(document.getElementById('balance').value) || 0;
             const riskValue = parseFloat(document.getElementById('riskValue').value) || 0;
