@@ -194,6 +194,14 @@
                     <option value="10">Gold (XAUUSD - $10/pip)</option>
                 </select>
             </div>
+            <div class="group">
+                <label>Contract Size</label>
+                <select id="contractSize" onchange="calculate()">
+                    <option value="1">Standard (100k units)</option>
+                    <option value="10">Mini (10k units)</option>
+                    <option value="100" selected>Micro (1k units)</option>
+                </select>
+            </div>
             <div class="results-container">
                 <div class="result-box lot-box">
                     <span class="lbl">Recommended Lot Size</span>
@@ -342,15 +350,17 @@
             const tpPips = parseFloat(document.getElementById('targetPips').value) || 0;
             const pipValPerStdLot = parseFloat(document.getElementById('pairType').value);
             const riskType = document.querySelector('input[name="riskType"]:checked').value;
+            const contractMultiplier = parseFloat(document.getElementById('contractSize').value);
 
             let riskUSD = riskType === 'percent' ? (balance * (riskValue / 100)) : riskValue;
 
             if (slPips > 0 && riskUSD > 0) {
-                // 1. Calculate Lot Size
-                const lotSize = (riskUSD / slPips) / pipValPerStdLot;
+                // 1. Calculate Lot Size with multiplier
+                const lotSize = ((riskUSD / slPips) / pipValPerStdLot) * contractMultiplier;
 
-                // 2. Calculate Profit based on that Lot Size
-                const potentialProfit = lotSize * tpPips * pipValPerStdLot;
+                // 2. Calculate Profit based on actual lot size
+                // Divide lotSize by multiplier to get standard lot equivalent
+                const potentialProfit = (lotSize / contractMultiplier) * tpPips * pipValPerStdLot;
 
                 // 3. Risk to Reward Ratio
                 const rr = tpPips / slPips;
