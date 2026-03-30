@@ -97,6 +97,42 @@
         .lot-box {
             background: #1a1a1b;
             grid-column: span 2;
+            position: relative;
+        }
+
+        .pip-box {
+            background: #6366f1;
+        }
+
+        .rr-box {
+            background: #facc15;
+            color: #000;
+        }
+
+        .rr-box .lbl,
+        .rr-box .val {
+            color: #000;
+            opacity: 1;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            border-radius: 5px;
+            padding: 3px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: background 0.15s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.28);
         }
 
         .val {
@@ -191,7 +227,7 @@
                 <select id="pairType" onchange="calculate()">
                     <option value="10">Forex Majors (EURUSD, etc. - $10/pip)</option>
                     <option value="7">JPY Pairs (USDJPY, etc. - ~$7/pip)</option>
-                    <option value="10">Gold (XAUUSD - $10/pip)</option>
+                    <option value="1">Gold (XAUUSD - $1/pip)</option>
                 </select>
             </div>
             <div class="group">
@@ -204,8 +240,9 @@
             </div>
             <div class="results-container">
                 <div class="result-box lot-box">
+                    <button class="copy-btn" onclick="copyLot(this)" title="Copy lot size">COPY</button>
                     <span class="lbl">Recommended Lot Size</span>
-                    <span class="val" id="lotOutput">0.16</span>
+                    <span class="val" id="lotOutput">16.00</span>
                 </div>
                 <div class="result-box risk-box">
                     <span class="lbl">Risk Amount</span>
@@ -215,9 +252,14 @@
                     <span class="lbl">Potential Profit</span>
                     <span class="val" id="profitOutput">$49.60</span>
                 </div>
-            </div>
-            <div style="text-align: center;">
-                <div id="rrRatio" class="rr-badge">R:R Ratio: 1:2.48</div>
+                <div class="result-box pip-box">
+                    <span class="lbl">Pip Value / Lot</span>
+                    <span class="val" id="pipValOutput">$0.10</span>
+                </div>
+                <div class="result-box rr-box">
+                    <span class="lbl">R:R Ratio</span>
+                    <span class="val" id="rrOutput">1:2.48</span>
+                </div>
             </div>
         </div>
         <div class="card" id="calc-card" tabindex="0" style="flex: 1 1 0; min-width: 320px; max-width: 350px; display: flex; flex-direction: column; align-items: center; outline: none;">
@@ -259,25 +301,20 @@
         // Market clocks logic
         function updateMarketClocks() {
             const now = new Date();
-            // UTC offsets for each market (in hours)
             const markets = [
-                { id: 'clock-ny', offset: -5 },    // New York (EST, adjust for DST if needed)
-                { id: 'clock-london', offset: 0 }, // London (UTC)
-                { id: 'clock-tokyo', offset: 9 },  // Tokyo (JST)
-                { id: 'clock-sydney', offset: 10 } // Sydney (AEST)
+                { id: 'clock-ny',     tz: 'America/New_York' },
+                { id: 'clock-london', tz: 'Europe/London' },
+                { id: 'clock-tokyo',  tz: 'Asia/Tokyo' },
+                { id: 'clock-sydney', tz: 'Australia/Sydney' }
             ];
-            // Get UTC time
-            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             markets.forEach(market => {
-                // Calculate local time for each market
-                const local = new Date(utc + 3600000 * market.offset);
-                let hours = local.getHours();
-                const minutes = String(local.getMinutes()).padStart(2, '0');
-                const seconds = String(local.getSeconds()).padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; // the hour '0' should be '12'
-                const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+                const timeStr = now.toLocaleTimeString('en-US', {
+                    timeZone: market.tz,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
                 document.getElementById(market.id).innerText = timeStr;
             });
         }
@@ -343,6 +380,14 @@
             calcCurrent = '';
             document.getElementById('calc-display').innerText = '0';
         }
+        function copyLot(btn) {
+            const val = document.getElementById('lotOutput').innerText;
+            navigator.clipboard.writeText(val).then(() => {
+                const orig = btn.innerText;
+                btn.innerText = 'COPIED!';
+                setTimeout(() => { btn.innerText = orig; }, 1500);
+            });
+        }
         function calculate() {
             const balance = parseFloat(document.getElementById('balance').value) || 0;
             const riskValue = parseFloat(document.getElementById('riskValue').value) || 0;
@@ -365,10 +410,13 @@
                 // 3. Risk to Reward Ratio
                 const rr = tpPips / slPips;
 
+                const pipValuePerLot = pipValPerStdLot / contractMultiplier;
+
                 document.getElementById('lotOutput').innerText = lotSize.toFixed(2);
+                document.getElementById('pipValOutput').innerText = `$${pipValuePerLot.toFixed(2)}`;
                 document.getElementById('riskOutput').innerText = `$${riskUSD.toFixed(2)}`;
                 document.getElementById('profitOutput').innerText = `$${potentialProfit.toFixed(2)}`;
-                document.getElementById('rrRatio').innerText = `R:R Ratio: 1:${rr.toFixed(2)}`;
+                document.getElementById('rrOutput').innerText = `1:${rr.toFixed(2)}`;
             }
         }
         calculate();
