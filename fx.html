@@ -20,7 +20,7 @@
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             width: 100%;
-            max-width: 450px;
+            box-sizing: border-box;
         }
 
         h2 {
@@ -197,8 +197,8 @@
 
 <body>
 
-    <div style="display: flex; gap: 32px; justify-content: center; width: 100%; max-width: 950px;">
-        <div class="card" style="flex: 1 1 0; min-width: 320px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; width: 100%; max-width: 1100px; margin: 0 auto; align-items: flex-start;">
+        <div class="card" style="flex: 2 1 0; min-width: 320px;">
             <h2>Lot Size Calculator</h2>
             <div class="group">
                 <label>Account Balance ($)</label>
@@ -225,10 +225,19 @@
             <div class="group">
                 <label>Asset Type</label>
                 <select id="pairType" onchange="calculate()">
-                    <option value="10">Forex Majors (EURUSD, etc. - $10/pip)</option>
-                    <option value="7">JPY Pairs (USDJPY, etc. - ~$7/pip)</option>
-                    <option value="1">Gold (XAUUSD - $1/pip)</option>
+                    <optgroup label="── Forex Majors ──">
+                        <option value="10">EURUSD, GBPUSD, AUDUSD, NZDUSD ($10/pip)</option>
+                        <option value="7" id="opt-jpy">JPY Pairs — USDJPY, EURJPY, GBPJPY (~$7/pip)</option>
+                        <option value="7.25" id="opt-usdcad">USDCAD (~$7.25/pip, approx)</option>
+                        <option value="11.50" id="opt-usdchf">USDCHF (~$11.50/pip, approx)</option>
+                    </optgroup>
+                    <optgroup label="── Commodities ──">
+                        <option value="1">Gold — XAUUSD ($1/pip)</option>
+                        <option value="5">Silver — XAGUSD ($5/pip)</option>
+                        <option value="10">Oil — USOIL / BRENT ($10/pip)</option>
+                    </optgroup>
                 </select>
+                <div id="rates-status" style="font-size:0.75rem; margin-top:6px; color:#aaa;">Fetching live rates...</div>
             </div>
             <div class="group">
                 <label>Contract Size</label>
@@ -262,7 +271,8 @@
                 </div>
             </div>
         </div>
-        <div class="card" id="calc-card" tabindex="0" style="flex: 1 1 0; min-width: 320px; max-width: 350px; display: flex; flex-direction: column; align-items: center; outline: none;">
+        <div style="flex: 1 1 280px; min-width: 280px; display: flex; flex-direction: column; gap: 24px;">
+            <div class="card" id="calc-card" tabindex="0" style="display: flex; flex-direction: column; align-items: center; outline: none;">
             <h2>Calculator</h2>
             <div id="calc-display" style="width: 100%; background: #f8f9fa; border-radius: 8px; padding: 18px 12px; font-size: 1.5rem; text-align: right; margin-bottom: 18px; min-height: 36px; box-sizing: border-box; word-break: break-all;">0</div>
             <div style="width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
@@ -285,7 +295,7 @@
                 <button class="calc-btn" onclick="calcClear()" style="grid-column: span 4; background: #e11d48; color: #fff;">C</button>
             </div>
         </div>
-        <div class="card" style="flex: 1 1 0; min-width: 320px; max-width: 350px;">
+        <div class="card" style="">
             <h2 style="margin-bottom: 16px;">Market Clocks</h2>
             <div id="market-times" style="display: flex; flex-direction: column; gap: 12px;">
                 <div><span class="clock-label">New York</span><span class="clock-time" id="clock-ny">--:--:--</span></div>
@@ -293,6 +303,8 @@
                 <div><span class="clock-label">Tokyo</span><span class="clock-time" id="clock-tokyo">--:--:--</span></div>
                 <div><span class="clock-label">Sydney</span><span class="clock-time" id="clock-sydney">--:--:--</span></div>
             </div>
+        </div>
+
         </div>
 
     </div>
@@ -420,6 +432,40 @@
             }
         }
         calculate();
+
+        async function fetchLiveRates() {
+            const status = document.getElementById('rates-status');
+            try {
+                const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=CAD,CHF,JPY');
+                if (!res.ok) throw new Error('Network error');
+                const data = await res.json();
+                const { CAD, CHF, JPY } = data.rates;
+
+                const jpyPip = 1000 / JPY;
+                const cadPip = 10 / CAD;
+                const chfPip = 10 / CHF;
+
+                const optJpy = document.getElementById('opt-jpy');
+                optJpy.value = jpyPip.toFixed(4);
+                optJpy.textContent = `JPY Pairs — USDJPY, EURJPY, GBPJPY ($${jpyPip.toFixed(2)}/pip, live)`;
+
+                const optCad = document.getElementById('opt-usdcad');
+                optCad.value = cadPip.toFixed(4);
+                optCad.textContent = `USDCAD ($${cadPip.toFixed(2)}/pip, live)`;
+
+                const optChf = document.getElementById('opt-usdchf');
+                optChf.value = chfPip.toFixed(4);
+                optChf.textContent = `USDCHF ($${chfPip.toFixed(2)}/pip, live)`;
+
+                status.textContent = `Live rates loaded (${data.date}) — JPY, CAD, CHF pip values updated`;
+                status.style.color = '#10b981';
+                calculate();
+            } catch (e) {
+                status.textContent = 'Live rates unavailable — using static estimates';
+                status.style.color = '#e11d48';
+            }
+        }
+        fetchLiveRates();
     </script>
 
 </body>
